@@ -3,7 +3,7 @@
 # import os
 # import time 
 
-# app = Flask(__name__)
+# app = Flask(_name_)
 
 # app.config['MAIL_SERVER'] = 'smtp.gmail.com' 
 # app.config['MAIL_PORT'] = 587                
@@ -222,7 +222,7 @@
 #         return jsonify({"error": "An unexpected error occurred."}), 500
 
 # # Example Usage
-# if __name__ == "__main__":
+# if _name_ == "_main_":
     
 #     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), debug=False)
 
@@ -233,18 +233,15 @@ import os
 
 app = Flask(__name__)
 
-# Configs for mail server
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
-
-mail = Mail(app)
 
 def send_email(sender_email, sender_password, to_email, to_name, subject, text_body, pdf_path=None, image_path=None):
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USE_SSL'] = False
     app.config['MAIL_USERNAME'] = sender_email
     app.config['MAIL_PASSWORD'] = sender_password
-
+    mail = Mail(app)
     msg = Message(
         subject=subject,
         sender=sender_email,
