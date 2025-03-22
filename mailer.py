@@ -227,14 +227,128 @@
 #     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), debug=False)
 
 
+# from flask import Flask, request, jsonify
+# from flask_mail import Mail, Message
+# import os
+
+# app = Flask(__name__)
+
+
+# def send_email(sender_email, sender_password, to_email, to_name, subject, text_body, pdf_path=None, image_path=None):
+#     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+#     app.config['MAIL_PORT'] = 587
+#     app.config['MAIL_USE_TLS'] = True
+#     app.config['MAIL_USE_SSL'] = False
+#     app.config['MAIL_USERNAME'] = sender_email
+#     app.config['MAIL_PASSWORD'] = sender_password
+#     mail = Mail(app)
+#     msg = Message(
+#         subject=subject,
+#         sender=sender_email,
+#         recipients=[to_email]
+#     )
+#     msg.body = f"Dear {to_name},\n\n{text_body}"
+
+#     if pdf_path:
+#         with app.open_resource(pdf_path) as pdf:
+#             msg.attach(
+#                 os.path.basename(pdf_path),
+#                 'application/pdf',
+#                 pdf.read(),
+#                 headers={'Content-ID': '<embedded_pdf>'}  # Dictionary format
+#             )
+
+#     if image_path:
+#         with app.open_resource(image_path) as image:
+#             msg.attach(
+#                 os.path.basename(image_path),
+#                 'image/jpeg',
+#                 image.read(),
+#                 headers={'Content-ID': '<embedded_image>'}  # Dictionary format
+#             )
+
+#     with app.app_context():
+#         mail.send(msg)
+
+#     print(f"Email sent to {to_name} at {to_email}")
+
+# @app.route('/sendemails', methods=['POST'])
+# def send_bulk_emails_route():
+#     try:
+#         data = request.get_json()
+#         if not isinstance(data, dict):
+#             return jsonify({"error": "Invalid JSON structure. Expected a JSON object."}), 400
+
+#         sender_email = data.get('sender_email')
+#         sender_password = data.get('sender_password')
+#         subject = data.get('subject')
+
+#         recipient_list = data.get('recipients', [])
+#         if not isinstance(recipient_list, list):
+#             return jsonify({"error": "'recipients' must be a list."}), 400
+
+#         text_body_template = data.get('text_body')
+
+#         pdf_path = data.get('pdf_path')
+#         image_path = data.get('image_path')
+
+#         for recipient in recipient_list:
+#             if not isinstance(recipient, dict):
+#                 return jsonify({"error": "Each recipient must be a dictionary."}), 400
+
+#             to_email = recipient.get('email')
+#             to_name = recipient.get('name')
+
+#             if not to_email or not to_name:
+#                 return jsonify({"error": "Each recipient must include 'email' and 'name'."}), 400
+
+#             text_body = f"Dear {to_name},\n\n{text_body_template.format(to_name=to_name)}"
+
+#             try:
+#                 send_email(sender_email, sender_password, to_email, to_name, subject, text_body, pdf_path, image_path)
+#             except Exception as e:
+#                 print(f"Failed to send email to {to_email}: {e}")
+
+#         return jsonify({"status": "Emails sent successfully"}), 200
+
+#     except Exception as e:
+#         print(f"Error: {e}")
+#         return jsonify({"error": "An unexpected error occurred."}), 500
+
+# if __name__ == "__main__":
+#     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), debug=False)
+
+
 from flask import Flask, request, jsonify
 from flask_mail import Mail, Message
 import os
+import pandas as pd
+import json
 
 app = Flask(__name__)
 
 
-def send_email(sender_email, sender_password, to_email, to_name, subject, text_body, pdf_path=None, image_path=None):
+def extract_emails_from_csv(file, email_column_name, name_column_name):
+    email_entries = []
+    try:
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(file)
+        else:  # Handle .xls and .xlsx
+            df = pd.read_excel(file)
+
+        if email_column_name in df.columns and name_column_name in df.columns:
+            for index, row in df.loc[:, [email_column_name, name_column_name]].dropna().iterrows():
+                email = row[email_column_name]
+                name = row[name_column_name]
+                if email not in ["No email", "vanshikaaggarwal@igdtuw.ac.in", "shivani.chopra@hp.com"]:
+                    email_entries.append({"email": email, "name": name})
+        else:
+            print(f"Column '{email_column_name}' or '{name_column_name}' not found in file {file.filename}")
+    except Exception as e:
+        print(f"Error processing file {file.filename}: {e}")
+
+    return email_entries
+def send_email(sender_email, sender_password, to_email, to_name, subject, text_body, pdf_file=None, image_file=None):
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 587
     app.config['MAIL_USE_TLS'] = True
@@ -242,6 +356,7 @@ def send_email(sender_email, sender_password, to_email, to_name, subject, text_b
     app.config['MAIL_USERNAME'] = sender_email
     app.config['MAIL_PASSWORD'] = sender_password
     mail = Mail(app)
+
     msg = Message(
         subject=subject,
         sender=sender_email,
@@ -249,23 +364,21 @@ def send_email(sender_email, sender_password, to_email, to_name, subject, text_b
     )
     msg.body = f"Dear {to_name},\n\n{text_body}"
 
-    if pdf_path:
-        with app.open_resource(pdf_path) as pdf:
-            msg.attach(
-                os.path.basename(pdf_path),
-                'application/pdf',
-                pdf.read(),
-                headers={'Content-ID': '<embedded_pdf>'}  # Dictionary format
-            )
+    if pdf_file:
+        msg.attach(
+            pdf_file.filename,
+            'application/pdf',
+            pdf_file.read(),
+            headers={'Content-ID': '<embedded_pdf>'}
+        )
 
-    if image_path:
-        with app.open_resource(image_path) as image:
-            msg.attach(
-                os.path.basename(image_path),
-                'image/jpeg',
-                image.read(),
-                headers={'Content-ID': '<embedded_image>'}  # Dictionary format
-            )
+    if image_file:
+        msg.attach(
+            image_file.filename,
+            'image/jpeg',
+            image_file.read(),
+            headers={'Content-ID': '<embedded_image>'}
+        )
 
     with app.app_context():
         mail.send(msg)
@@ -275,37 +388,29 @@ def send_email(sender_email, sender_password, to_email, to_name, subject, text_b
 @app.route('/sendemails', methods=['POST'])
 def send_bulk_emails_route():
     try:
-        data = request.get_json()
-        if not isinstance(data, dict):
-            return jsonify({"error": "Invalid JSON structure. Expected a JSON object."}), 400
+        sender_email = request.form.get('sender_email')
+        sender_password = request.form.get('sender_password')
+        subject = request.form.get('subject')
+        text_body_template = request.form.get('text_body')
+        csv_file = request.files.get('csv_file')
+        email_column_name = request.form.get('email_column_name')
+        name_column_name = request.form.get('name_column_name')
 
-        sender_email = data.get('sender_email')
-        sender_password = data.get('sender_password')
-        subject = data.get('subject')
+        pdf_file = request.files.get('pdf_file')
+        image_file = request.files.get('image_file')
 
-        recipient_list = data.get('recipients', [])
-        if not isinstance(recipient_list, list):
-            return jsonify({"error": "'recipients' must be a list."}), 400
+        if not all([sender_email, sender_password, subject, text_body_template, csv_file, email_column_name, name_column_name]):
+            return jsonify({"error": "Missing required parameters"}), 400
 
-        text_body_template = data.get('text_body')
-
-        pdf_path = data.get('pdf_path')
-        image_path = data.get('image_path')
+        recipient_list = extract_emails_from_csv(csv_file, email_column_name, name_column_name)
 
         for recipient in recipient_list:
-            if not isinstance(recipient, dict):
-                return jsonify({"error": "Each recipient must be a dictionary."}), 400
-
-            to_email = recipient.get('email')
-            to_name = recipient.get('name')
-
-            if not to_email or not to_name:
-                return jsonify({"error": "Each recipient must include 'email' and 'name'."}), 400
-
-            text_body = f"Dear {to_name},\n\n{text_body_template.format(to_name=to_name)}"
+            to_email = recipient['email']
+            to_name = recipient['name']
+            text_body = text_body_template.format(to_name=to_name)
 
             try:
-                send_email(sender_email, sender_password, to_email, to_name, subject, text_body, pdf_path, image_path)
+                send_email(sender_email, sender_password, to_email, to_name, subject, text_body, pdf_file, image_file)
             except Exception as e:
                 print(f"Failed to send email to {to_email}: {e}")
 
