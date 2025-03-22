@@ -362,7 +362,7 @@ def send_email(sender_email, sender_password, to_email, to_name, subject, text_b
         sender=sender_email,
         recipients=[to_email]
     )
-    msg.body = f"Dear {to_name},\n\n{text_body}"
+    msg.body = f"Respected {to_name},\n\n{text_body}"
 
     if pdf_file:
         msg.attach(
