@@ -349,7 +349,9 @@ def extract_emails_from_csv(file, email_column_name, name_column_name):
 
     return email_entries
 def send_email(sender_email, sender_password, to_email, to_name, subject, text_body, pdf_file=None, image_file=None):
-    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    # app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    # app.config['MAIL_PORT'] = 587
+    app.config['MAIL_SERVER'] = 'smtpout.secureserver.net' 
     app.config['MAIL_PORT'] = 587
     app.config['MAIL_USE_TLS'] = True
     app.config['MAIL_USE_SSL'] = False
