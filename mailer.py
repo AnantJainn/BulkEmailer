@@ -438,9 +438,9 @@ app = Flask(__name__)
 # Configure mail once globally
 app.config.update(
     MAIL_SERVER='smtpout.secureserver.net',
-    MAIL_PORT=465,
-    MAIL_USE_TLS=False,
-    MAIL_USE_SSL=True,
+    MAIL_PORT=587,
+    MAIL_USE_TLS=True,
+    MAIL_USE_SSL=False,
     MAIL_USERNAME=None,  # will set dynamically
     MAIL_PASSWORD=None,
 )
