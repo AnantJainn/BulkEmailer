@@ -352,7 +352,7 @@ def send_email(sender_email, sender_password, to_email, to_name, subject, text_b
     # app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     # app.config['MAIL_PORT'] = 587
     app.config['MAIL_SERVER'] = 'smtpout.secureserver.net' 
-    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_PORT'] = 465
     app.config['MAIL_USE_TLS'] = True
     app.config['MAIL_USE_SSL'] = False
     app.config['MAIL_USERNAME'] = sender_email
