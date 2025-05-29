@@ -532,7 +532,7 @@ def send_bulk_emails_route():
 
             try:
                 send_email(sender_email, sender_password, to_email, to_name, subject, text_body, pdf_file, image_file)
-                time.sleep(7)
+                time.sleep(5)
             except Exception as e:
                 logging.error(f"Failed to send email to {to_email}: {e}")
 
