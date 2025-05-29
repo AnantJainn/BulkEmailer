@@ -319,199 +319,199 @@
 #     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), debug=False)
 
 
-# from flask import Flask, request, jsonify
-# from flask_mail import Mail, Message
-# import os
-# import pandas as pd
-# import json
-
-# app = Flask(__name__)
-
-
-# def extract_emails_from_csv(file, email_column_name, name_column_name):
-#     email_entries = []
-#     try:
-#         if file.filename.endswith('.csv'):
-#             df = pd.read_csv(file)
-#         else:  # Handle .xls and .xlsx
-#             df = pd.read_excel(file)
-
-#         if email_column_name in df.columns and name_column_name in df.columns:
-#             for index, row in df.loc[:, [email_column_name, name_column_name]].dropna().iterrows():
-#                 email = row[email_column_name]
-#                 name = row[name_column_name]
-#                 if email not in ["No email", "vanshikaaggarwal@igdtuw.ac.in", "shivani.chopra@hp.com"]:
-#                     email_entries.append({"email": email, "name": name})
-#         else:
-#             print(f"Column '{email_column_name}' or '{name_column_name}' not found in file {file.filename}")
-#     except Exception as e:
-#         print(f"Error processing file {file.filename}: {e}")
-
-#     return email_entries
-# def send_email(sender_email, sender_password, to_email, to_name, subject, text_body, pdf_file=None, image_file=None):
-#     # app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-#     # app.config['MAIL_PORT'] = 587
-#     app.config['MAIL_SERVER'] = 'smtpout.secureserver.net' 
-#     app.config['MAIL_PORT'] = 465
-#     app.config['MAIL_USE_TLS'] = False
-#     app.config['MAIL_USE_SSL'] = True
-#     app.config['MAIL_USERNAME'] = sender_email
-#     app.config['MAIL_PASSWORD'] = sender_password
-#     mail = Mail(app)
-
-#     msg = Message(
-#         subject=subject,
-#         sender=sender_email,
-#         recipients=[to_email]
-#     )
-#     msg.body = f"Respected {to_name},\n\n{text_body}"
-
-#     if pdf_file:
-#         msg.attach(
-#             pdf_file.filename,
-#             'application/pdf',
-#             pdf_file.read(),
-#             headers={'Content-ID': '<embedded_pdf>'}
-#         )
-
-#     if image_file:
-#         msg.attach(
-#             image_file.filename,
-#             'image/jpeg',
-#             image_file.read(),
-#             headers={'Content-ID': '<embedded_image>'}
-#         )
-
-#     with app.app_context():
-#         mail.send(msg)
-
-#     print(f"Email sent to {to_name} at {to_email}")
-
-# @app.route('/sendemails', methods=['POST'])
-# def send_bulk_emails_route():
-#     try:
-#         sender_email = request.form.get('sender_email')
-#         sender_password = request.form.get('sender_password')
-#         subject = request.form.get('subject')
-#         text_body_template = request.form.get('text_body')
-#         csv_file = request.files.get('csv_file')
-#         email_column_name = request.form.get('email_column_name')
-#         name_column_name = request.form.get('name_column_name')
-
-#         pdf_file = request.files.get('pdf_file')
-#         image_file = request.files.get('image_file')
-
-#         if not all([sender_email, sender_password, subject, text_body_template, csv_file, email_column_name, name_column_name]):
-#             return jsonify({"error": "Missing required parameters"}), 400
-
-#         recipient_list = extract_emails_from_csv(csv_file, email_column_name, name_column_name)
-
-#         for recipient in recipient_list:
-#             to_email = recipient['email']
-#             to_name = recipient['name']
-#             text_body = text_body_template.format(to_name=to_name)
-
-#             try:
-#                 send_email(sender_email, sender_password, to_email, to_name, subject, text_body, pdf_file, image_file)
-#             except Exception as e:
-#                 print(f"Failed to send email to {to_email}: {e}")
-
-#         return jsonify({"status": "Emails sent successfully"}), 200
-
-#     except Exception as e:
-#         print(f"Error: {e}")
-#         return jsonify({"error": "An unexpected error occurred."}), 500
-
-# if __name__ == "__main__":
-#     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), debug=False)
-
-
-
-
-
 from flask import Flask, request, jsonify
 from flask_mail import Mail, Message
+import os
 import pandas as pd
+import json
 
 app = Flask(__name__)
 
-# Configure mail once globally
-app.config.update(
-    MAIL_SERVER='smtpout.secureserver.net',
-    MAIL_PORT=587,
-    MAIL_USE_TLS=True,
-    MAIL_USE_SSL=False,
-    MAIL_USERNAME=None,  # will set dynamically
-    MAIL_PASSWORD=None,
-)
 
-mail = Mail(app)
-
-def extract_emails_from_csv(file, email_col, name_col):
-    emails = []
+def extract_emails_from_csv(file, email_column_name, name_column_name):
+    email_entries = []
     try:
         if file.filename.endswith('.csv'):
             df = pd.read_csv(file)
-        else:
+        else:  # Handle .xls and .xlsx
             df = pd.read_excel(file)
-        if email_col in df.columns and name_col in df.columns:
-            for _, row in df.dropna(subset=[email_col, name_col]).iterrows():
-                email = row[email_col]
-                name = row[name_col]
-                if email not in ["No email", "vanshikaaggarwal@igdtuw.ac.in", "shivani.chopra@hp.com"]:
-                    emails.append({"email": email, "name": name})
-    except Exception as e:
-        print(f"Error reading file: {e}")
-    return emails
 
-def send_email(sender_email, sender_password, to_email, to_name, subject, body, pdf_file=None, image_file=None):
-    # Update app config dynamically for username/password
+        if email_column_name in df.columns and name_column_name in df.columns:
+            for index, row in df.loc[:, [email_column_name, name_column_name]].dropna().iterrows():
+                email = row[email_column_name]
+                name = row[name_column_name]
+                if email not in ["No email", "vanshikaaggarwal@igdtuw.ac.in", "shivani.chopra@hp.com"]:
+                    email_entries.append({"email": email, "name": name})
+        else:
+            print(f"Column '{email_column_name}' or '{name_column_name}' not found in file {file.filename}")
+    except Exception as e:
+        print(f"Error processing file {file.filename}: {e}")
+
+    return email_entries
+def send_email(sender_email, sender_password, to_email, to_name, subject, text_body, pdf_file=None, image_file=None):
+    # app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    # app.config['MAIL_PORT'] = 587
+    app.config['MAIL_SERVER'] = 'smtpout.secureserver.net' 
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USE_SSL'] = True
     app.config['MAIL_USERNAME'] = sender_email
     app.config['MAIL_PASSWORD'] = sender_password
+    mail = Mail(app)
 
-    msg = Message(subject=subject, sender=sender_email, recipients=[to_email])
-    msg.body = f"Respected {to_name},\n\n{body}"
+    msg = Message(
+        subject=subject,
+        sender=sender_email,
+        recipients=[to_email]
+    )
+    msg.body = f"Respected {to_name},\n\n{text_body}"
 
     if pdf_file:
-        pdf_file.seek(0)
-        msg.attach(pdf_file.filename, 'application/pdf', pdf_file.read())
+        msg.attach(
+            pdf_file.filename,
+            'application/pdf',
+            pdf_file.read(),
+            headers={'Content-ID': '<embedded_pdf>'}
+        )
 
     if image_file:
-        image_file.seek(0)
-        msg.attach(image_file.filename, 'image/jpeg', image_file.read())
+        msg.attach(
+            image_file.filename,
+            'image/jpeg',
+            image_file.read(),
+            headers={'Content-ID': '<embedded_image>'}
+        )
 
     with app.app_context():
         mail.send(msg)
-    print(f"Email sent to {to_email}")
+
+    print(f"Email sent to {to_name} at {to_email}")
 
 @app.route('/sendemails', methods=['POST'])
-def send_bulk_emails():
+def send_bulk_emails_route():
     try:
-        sender_email = request.form['sender_email']
-        sender_password = request.form['sender_password']
-        subject = request.form['subject']
-        text_body_template = request.form['text_body']
-        csv_file = request.files['csv_file']
-        email_col = request.form['email_column_name']
-        name_col = request.form['name_column_name']
+        sender_email = request.form.get('sender_email')
+        sender_password = request.form.get('sender_password')
+        subject = request.form.get('subject')
+        text_body_template = request.form.get('text_body')
+        csv_file = request.files.get('csv_file')
+        email_column_name = request.form.get('email_column_name')
+        name_column_name = request.form.get('name_column_name')
+
         pdf_file = request.files.get('pdf_file')
         image_file = request.files.get('image_file')
 
-        recipients = extract_emails_from_csv(csv_file, email_col, name_col)
+        if not all([sender_email, sender_password, subject, text_body_template, csv_file, email_column_name, name_column_name]):
+            return jsonify({"error": "Missing required parameters"}), 400
 
-        for recipient in recipients:
+        recipient_list = extract_emails_from_csv(csv_file, email_column_name, name_column_name)
+
+        for recipient in recipient_list:
             to_email = recipient['email']
             to_name = recipient['name']
             text_body = text_body_template.format(to_name=to_name)
+
             try:
                 send_email(sender_email, sender_password, to_email, to_name, subject, text_body, pdf_file, image_file)
             except Exception as e:
-                print(f"Failed to send to {to_email}: {e}")
+                print(f"Failed to send email to {to_email}: {e}")
 
         return jsonify({"status": "Emails sent successfully"}), 200
+
     except Exception as e:
         print(f"Error: {e}")
-        return jsonify({"error": "Unexpected error"}), 500
+        return jsonify({"error": "An unexpected error occurred."}), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=False)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), debug=False)
+
+
+
+
+
+# from flask import Flask, request, jsonify
+# from flask_mail import Mail, Message
+# import pandas as pd
+
+# app = Flask(__name__)
+
+# # Configure mail once globally
+# app.config.update(
+#     MAIL_SERVER='smtpout.secureserver.net',
+#     MAIL_PORT=587,
+#     MAIL_USE_TLS=True,
+#     MAIL_USE_SSL=False,
+#     MAIL_USERNAME=None,  # will set dynamically
+#     MAIL_PASSWORD=None,
+# )
+
+# mail = Mail(app)
+
+# def extract_emails_from_csv(file, email_col, name_col):
+#     emails = []
+#     try:
+#         if file.filename.endswith('.csv'):
+#             df = pd.read_csv(file)
+#         else:
+#             df = pd.read_excel(file)
+#         if email_col in df.columns and name_col in df.columns:
+#             for _, row in df.dropna(subset=[email_col, name_col]).iterrows():
+#                 email = row[email_col]
+#                 name = row[name_col]
+#                 if email not in ["No email", "vanshikaaggarwal@igdtuw.ac.in", "shivani.chopra@hp.com"]:
+#                     emails.append({"email": email, "name": name})
+#     except Exception as e:
+#         print(f"Error reading file: {e}")
+#     return emails
+
+# def send_email(sender_email, sender_password, to_email, to_name, subject, body, pdf_file=None, image_file=None):
+#     # Update app config dynamically for username/password
+#     app.config['MAIL_USERNAME'] = sender_email
+#     app.config['MAIL_PASSWORD'] = sender_password
+
+#     msg = Message(subject=subject, sender=sender_email, recipients=[to_email])
+#     msg.body = f"Respected {to_name},\n\n{body}"
+
+#     if pdf_file:
+#         pdf_file.seek(0)
+#         msg.attach(pdf_file.filename, 'application/pdf', pdf_file.read())
+
+#     if image_file:
+#         image_file.seek(0)
+#         msg.attach(image_file.filename, 'image/jpeg', image_file.read())
+
+#     with app.app_context():
+#         mail.send(msg)
+#     print(f"Email sent to {to_email}")
+
+# @app.route('/sendemails', methods=['POST'])
+# def send_bulk_emails():
+#     try:
+#         sender_email = request.form['sender_email']
+#         sender_password = request.form['sender_password']
+#         subject = request.form['subject']
+#         text_body_template = request.form['text_body']
+#         csv_file = request.files['csv_file']
+#         email_col = request.form['email_column_name']
+#         name_col = request.form['name_column_name']
+#         pdf_file = request.files.get('pdf_file')
+#         image_file = request.files.get('image_file')
+
+#         recipients = extract_emails_from_csv(csv_file, email_col, name_col)
+
+#         for recipient in recipients:
+#             to_email = recipient['email']
+#             to_name = recipient['name']
+#             text_body = text_body_template.format(to_name=to_name)
+#             try:
+#                 send_email(sender_email, sender_password, to_email, to_name, subject, text_body, pdf_file, image_file)
+#             except Exception as e:
+#                 print(f"Failed to send to {to_email}: {e}")
+
+#         return jsonify({"status": "Emails sent successfully"}), 200
+#     except Exception as e:
+#         print(f"Error: {e}")
+#         return jsonify({"error": "Unexpected error"}), 500
+
+# if __name__ == "__main__":
+#     app.run(host="0.0.0.0", port=8000, debug=False)
